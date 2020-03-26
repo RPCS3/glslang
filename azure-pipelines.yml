@@ -1,0 +1,59 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+
+jobs:
+- job: build_win32
+  displayName: Win32 Build
+  timeoutInMinutes: 0
+
+  pool:
+    vmImage: 'windows-2019'
+
+  steps:
+  - script: |
+      mkdir glslang_build
+      cd glslang_build
+      cmake -G "Visual Studio 16 2019" .. -Thost=x64 -DCMAKE_BUILD_TYPE=Release -DCMAKE_SYSTEM_VERSION=6.1 -DCMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION=10.0 -DCMAKE_CXX_STANDARD=20 -DLLVM_USE_CRT_DEBUG=MTd -DLLVM_USE_CRT_RELEASE=MT
+    displayName: Configure glslang
+
+  - script: |
+      cd glslang_build
+      cmake --build . --config Release -- /maxcpucount
+    displayName: Build glslang
+
+  - script: |
+      mkdir glslang_out
+      cd glslang_out
+      xcopy "..\glslang_build\glslang\Release\glslang.lib" ".\" /E
+      xcopy "..\glslang_build\hlsl\Release\HLSL.lib" ".\" /E
+      xcopy "..\glslang_build\OGLCompilersDLL\Release\OGLCompiler.lib" ".\" /E
+      xcopy "..\glslang_build\glslang\OSDependent\Windows\Release\OSDependent.lib" ".\" /E
+      xcopy "..\glslang_build\SPIRV\Release\SPIRV.lib" ".\" /E
+      7z a -t7z -m0=lzma2 -mx=9 -aoa -r "glslanglibs_mt.7z" *.lib
+    displayName: Package glslang Libraries
+
+  - task: GitHubRelease@0
+    inputs:
+      gitHubConnection: RPCS3-Token
+      repositoryName: RPCS3/glslang
+      action: edit # Options: create, edit, delete
+      target: '$(Build.SourceVersion)' # Required when action == Create || Action == Edit
+      tagSource: auto # Required when action == Create# Options: auto, manual
+      #tagPattern: # Optional
+      tag: 'custom-build-win' # Required when action == Edit || Action == Delete || TagSource == Manual
+      title: 'Windows Build' # Optional
+      #releaseNotesSource: 'file' # Optional. Options: file, input
+      #releaseNotesFile: # Optional
+      #releaseNotes: # Optional
+      assets: 'glslang_out/glslanglibs_mt.7z' # Optional
+      assetUploadMode: delete # Optional. Options: delete, replace
+      #isDraft: false # Optional
+      #isPreRelease: true # Optional
+      #addChangeLog: true # Optional
+      #compareWith: 'lastFullRelease' # Required when addChangeLog == True. Options: lastFullRelease, lastRelease, lastReleaseByTag
+      #releaseTag: # Required when compareWith == LastReleaseByTag
