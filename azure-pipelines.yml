@@ -37,7 +37,13 @@ jobs:
       7z a -t7z -m0=lzma2 -mx=9 -aoa -r "glslanglibs_mt.7z" *.lib
     displayName: Package glslang Libraries
 
+  - bash: |
+      cd glslang_out
+      sha256sum glslanglibs_mt.7z | awk '{ print $1 }' > glslanglibs_mt.7z.sha256
+    displayName: Generate sha256
+
   - task: GitHubRelease@0
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
     inputs:
       gitHubConnection: RPCS3-Token
       repositoryName: RPCS3/glslang
@@ -50,7 +56,7 @@ jobs:
       #releaseNotesSource: 'file' # Optional. Options: file, input
       #releaseNotesFile: # Optional
       #releaseNotes: # Optional
-      assets: 'glslang_out/glslanglibs_mt.7z' # Optional
+      assets: 'glslang_out/glslanglibs_mt.*' # Optional
       assetUploadMode: delete # Optional. Options: delete, replace
       #isDraft: false # Optional
       #isPreRelease: true # Optional
