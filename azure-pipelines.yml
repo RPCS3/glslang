@@ -30,7 +30,8 @@ jobs:
       mkdir glslang_out
       cd glslang_out
       xcopy "..\glslang_build\glslang\Release\glslang.lib" ".\" /E
-      xcopy "..\glslang_build\hlsl\Release\HLSL.lib" ".\" /E
+      xcopy "..\glslang_build\glslang\Release\GenericCodeGen.lib" ".\" /E
+      xcopy "..\glslang_build\glslang\Release\MachineIndependent.lib" ".\" /E
       xcopy "..\glslang_build\OGLCompilersDLL\Release\OGLCompiler.lib" ".\" /E
       xcopy "..\glslang_build\glslang\OSDependent\Windows\Release\OSDependent.lib" ".\" /E
       xcopy "..\glslang_build\SPIRV\Release\SPIRV.lib" ".\" /E
