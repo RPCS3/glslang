@@ -1,7 +1,8 @@
 #version 460
-#extension GL_NV_ray_tracing : enable
 #extension GL_EXT_ray_query : enable
+#extension GL_EXT_ray_flags_primitive_culling : enable
 
+layout(primitive_culling);
 struct Ray
 {
     vec3 pos;
@@ -16,7 +17,7 @@ layout(std430, set = 0, binding = 0) buffer Log
     uint y;
 };
 
-layout(binding = 1, set = 0) uniform accelerationStructureNV rtas;
+layout(binding = 1, set = 0) uniform accelerationStructureEXT rtas;
 layout(std430, set = 0, binding = 2) buffer Rays { Ray rays[]; };
 
 void doSomething()
@@ -192,7 +193,7 @@ void main()
         doSomething();
     }
 
-    if (rayQueryGetRayFlagsEXT(rayQuery) > 0)
+    if (rayQueryGetRayFlagsEXT(rayQuery) > gl_RayFlagsSkipTrianglesEXT)
     {
         doSomething();
     }
